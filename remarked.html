@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      @import url(http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+
+      #editor {
+        font-family: 'Ubuntu Mono';
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        position: fixed;
+        top: 0;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.8);
+      }
+      #editorform {
+        width: 90%;
+        height: 90%;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0;
+        -moz-padding-start: 0;
+        -webkit-padding-start: 0;
+        text-align: left;
+        font-size: 100%;
+      }
+      #editorform li {
+        list-style-type: none;
+        width: 100%;
+      }
+      #editorform li label {
+        color: #fff;
+        width: 100%;
+        display: block;
+        margin-bottom: 0.2em;
+      }
+      #editorform li .input {
+        width: 100%;
+        margin-bottom: 1em;
+      }
+      #titletext, #source, #url {
+        width: 100%;
+        font-size: 100%;
+        border: 1px solid #B9C9CE;
+        border-radius:3px;
+        padding: 4px;
+      }
+      #btns {
+        text-align: center;
+      }
+      #btns button {
+        padding: 4px 8px;
+        border-radius:3px;
+      }
+      #save {
+        color: #fff;
+        border: 1px solid #4169e1;
+        background-color: #4169e1;
+      }
+      #publish {
+        color: #fff;
+        border: 1px solid #228b22;
+        background-color: #228b22;
+      }
+      #cancel {
+        color: #fff;
+        border: 1px solid #b22222;
+        background-color: #b22222;
+      }
+      .input a {
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="editor" style="display:none;">
+    <form id="form" action="#" method="GET">
+      <ul id="editorform">
+        <li>
+          <label for="titletext">Title:</label>
+          <div class="input">
+            <input id="titletext" type="text" name="title" value="">
+          </div>
+        </li>
+        <li>
+          <label for="source">Source:</label>
+          <div class="input">
+            <textarea id="source" name="source" rows="15"></textarea>
+          </div>
+        </li>
+        <li>
+          <label for="highlightStyle">Highlight Style: <span>(reload required)</span></label>
+          <div class="input">
+            <select id="highlightStyle" name="style">
+              <option value="arta">arta</option>
+              <option value="ascetic">ascetic</option>
+              <option value="dark">dark</option>
+              <option value="default">default</option>
+              <option value="far">far</option>
+              <option value="github">github</option>
+              <option value="googlecode">googlecode</option>
+              <option value="ir_black">ir_black</option>
+              <option value="magula">magula</option>
+              <option value="monokai">monokai</option>
+              <option value="rainbow">rainbow</option>
+              <option value="solarized_dark">solarized_dark</option>
+              <option value="solarized_light">solarized_light</option>
+              <option value="sunburst">sunburst</option>
+              <option value="tomorrow">tomorrow</option>
+              <option value="tomorrow-night-blue">tomorrow-night-blue</option>
+              <option value="tomorrow-night-bright">tomorrow-night-bright</option>
+              <option value="tomorrow-night">tomorrow-night</option>
+              <option value="tomorrow-night-eighties">tomorrow-night-eighties</option>
+              <option value="vs">vs</option>
+              <option value="zenburn">zenburn</option>
+            </select>
+          </div>
+        </li>
+        <li id="btns">
+          <button id="cancel">Cancel</button>
+          <button id="publish">Publish</button>
+          <button id="save">Save</button>
+        </li>
+        <li>
+          <label for="url">URL:</label>
+          <div class="input">
+            <input id="url" type="text"><br />
+            <a href="http://goo.gl/" target="_blank">Go to Goo.gl</a>
+          </div>
+        </li>
+      </ul>
+    </form>
+  </div>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js" type="text/javascript"></script>
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      function restart(src) {
+        return remark.create({
+          source: src.source,
+          navigation: {
+            scroll: true,
+            touch: true,
+            click: true
+          },
+          highlightStyle: src.style || 'default'
+        });
+      }
+      function Storage(key) {
+        var storageKey = key + location.pathname;
+        this.save = function(obj) {
+          localStorage.setItem(storageKey, JSON.stringify(obj));
+        };
+        this.load = function() {
+          var st = localStorage.getItem(storageKey);
+          var src = JSON.parse(st || '{"title":"Title","source":"#Sample\\nPress E key to edit","style":"default"}');
+          var qsrc = sourceFromQueryString();
+          src = qsrc ? qsrc : src ;
+          $('#source').text(src.source);
+          $('title').text(src.title);
+          $('#titletext').val(src.title);
+          $("#highlightStyle").val(src.style||"default");
+          return src;
+        };
+      }
+      function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+      }
+      function replaceNewline(text) {
+        if (!text) return text;
+        return text.replace(/[\r\n]/g, "\n");
+      }
+      function sourceFromQueryString() {
+        var title = getParameterByName('title'),
+          source = replaceNewline(getParameterByName('source')),
+          style = getParameterByName('style'),
+          src = {title: title, source: source, style: style};
+        return title != '' || source != '' || style != '' ? src : false ;
+      }
+      $(function(){
+        var storage = new Storage('Remarked');
+        var src = storage.load();
+        var slide = restart(src);
+        function showEditor() {
+          $('#editor').show();
+          $('#source').show();
+        }
+        function hideEditor() {
+          $('#editor').hide();
+          $('#source').hide();
+          slide.update();
+        }
+        $(window).on('keydown', function(e){
+          if (e.keyCode === 69 && !$('#editor').is(':visible')) {
+            $('#titletext').val($('title').text());
+            $("#highlightStyle").val(src.style||"default");
+            showEditor();
+          } else if (e.keyCode === 27 && $('#editor').is(':visible')) {
+            hideEditor();
+          }
+        });
+        $('#save').on('click', function(){
+          var newSrc = $('#source').val(), newTitle = $('#titletext').val(),
+            newHighlightStyle = $('#highlightStyle').val();
+          $('#source').text(newSrc);
+          $('title').text(newTitle);
+          storage.save({title: newTitle, source: newSrc, style: newHighlightStyle});
+          slide.loadFromString(newSrc);
+          hideEditor();
+          return false;
+        });
+        $('#publish').on('click',function(){
+          var newSrc = $('#source').val(), newTitle = $('#titletext').val(),
+            newHighlightStyle = $('#highlightStyle').val(),
+            src = {
+              title: newTitle,
+              source: replaceNewline(newSrc),
+              style: newHighlightStyle
+            },
+            qs = $.param(src);
+          $('#url').val(location.protocol+"//"+location.host+location.pathname+"?"+qs);
+          return false;
+        });
+        $('#cancel').on('click', function(){
+          hideEditor();
+          return false;
+        });
+        $('#titletext, #source, #url, #highlightStyle').on('keypress', function(e){
+          e.stopPropagation();
+        });
+      });
+    </script>
+  </body>
+</html>
